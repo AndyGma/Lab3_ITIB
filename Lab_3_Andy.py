@@ -54,22 +54,24 @@ class Lab:
 
 
     def find_Yslide(self):
-        w = np.array([], float)
-        for i in range(self.p + 1):
-            w = np.append(w, 0)
-
-        y_ist2N = self.find_Yist()[1]
+        w = np.zeros(self.p + 1)
+        y_ist2N = self.find_Yist()[1]  # истинные значения функции (полной)
         for g in range(self.M):  # проход по эпохам обучения
-            y = self.find_Yist()[0]
+
+            y = self.find_Yist()[0]  # истинные значения функции (короткой) len = 20
+
             for i in range(self.N):  # проход по каждому шагу функции
-                y = np.append(y, 0)
-                # print("y", i, " = ", y, sep="")
-                # print("Обновляю y", self.N + 1 + i - 1)
-                for j in range(1, self.p + 1):  # формирую 'y' (3.1)
-                    y[self.N + 1 + i - 1] += w[j] * y[(self.N + 1 + i - 1) - self.p + j - 1]
-                delta = y_ist2N[self.N + 1 + i - 1] - y[self.N + 1 + i - 1]
-                for j in range(1, self.p + 1):  # обновляю веса
-                    w[j] += self.n * delta * y[(self.N + 1 + i - 1) - self.p + j - 1]
+                for k in range(1, self.p + 1):  # формирую 'y' (3.1)
+                    temp = 0
+                    temp += w[k] * y[self.N - self.p + k - 1]  # +i в y[]
+                y = np.append(y, temp)
+
+                delta = y_ist2N[self.N + i] - y[self.N + i]
+                update = self.n * delta
+                for k in range(1, self.p + 1):
+                    w[k] += update * y[self.N - self.p + k - 1]
+                    w[0] += update
+            print(w)
         return y
 
     def paint(self):
@@ -85,13 +87,12 @@ class Lab:
         plt.legend()
         plt.show()
 
-    # def slidingWindow(self):
 
 
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 2, 0.01, 20, 4, 100)
+Work = Lab(9, -1, 4, 0.01, 20, 4, 2)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))

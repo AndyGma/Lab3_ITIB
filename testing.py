@@ -2,67 +2,82 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-a_ref = 0
-b_ref = 5
-n_ref = 0.01
-N_ref = 5
-p_ref = 3
-M_ref = 100
+class Lab:
+    var = None  # Вариант
+    a = None  # граница a
+    b = None  # граница b
+    n = None  # коэфф. обучения
+    N = None  # кол-во point'ов
+    p = None  # кол-во окон
+    M = None  # кол-во эпох обучения
 
-def solve(t):
-        # return math.exp(t - 2) - math.sin(t)
-        return t
+    def __init__(self, var, a, b, n, N, p, M):
+        self.var = var
+        self.a = a
+        self.b = b
+        self.n = n
+        self.N = N
+        self.p = p
+        self.M = M
 
-def find_X(a, b, N):
-    x_N = np.arange(a, b, (b - a) / N)
-    x_2N = np.arange(a, 2 * b - a, (b - a) / N)
-    return x_N, x_2N
-
-
-def find_Yist(a, b, N):
-    yN = np.array([], float)
-    y2N = np.array([], float)
-    tempN = find_X(a, b, N)[0]
-    temp2N = find_X(a, b, N)[1]
-    for i in range(len(tempN)):
-        yN = np.append(yN, solve(tempN[i]))
-    for i in range(len(temp2N)):
-        y2N = np.append(y2N, solve(temp2N[i]))
-    return yN, y2N
-
-def find_Yslide(a, b, n, N, p, M):
-    w = np.array([], float)
-    for i in range(p + 1):
-        w = np.append(w, 0)
-    print("Массив X[0-4]", find_X(a, b, N)[0])
-    print("Массив Y[0-4]", find_Yist(a, b, N)[0])
-    print("Массив X[0-9]", find_X(a, b, N)[1])
-    print("Массив Y[0-9]", find_Yist(a, b, N)[1])
-    y_ist2N = find_Yist(a, b, N)[1]
-    print(y_ist2N)
-    for g in range(M):  # проход по эпохам обучения
-        y = find_Yist(a, b, N)[0]
-        print(y)
-        for i in range(N):  # проход по каждому шагу функции
-            y = np.append(y, 0)
-            print(y, "and len = ", len(y))
-            # print("y", i, " = ", y, sep="")
-            # print("Обновляю y", self.N + 1 + i - 1)
-            for j in range(1, p + 1):  # формирую 'y' (3.1)
-                y[N + 1 + i - 1] += w[j] * y[(N + 1 + i - 1) - p + j - 1]
-            print("y", N + 1 + i - 1, " = ", y[N + 1 + i - 1], sep="")
-            delta = y_ist2N[N + 1 + i - 1] - y[N + 1 + i - 1]
-            print("Delta:   y_ist2N", N + 1 + i - 1, " = ", y_ist2N[N + 1 + i - 1], sep="")
-            print("Delta:   y", N + 1 + i - 1, " = ", y[N + 1 + i - 1], sep="")
-            for j in range(1, p + 1):  # обновляю веса
-                w[j] += n * delta * y[(N + 1 + i - 1) - p + j - 1]
-                print("Внутри W:   y", (N + 1 + i - 1) - p + j - 1, " = ", y[(N + 1 + i - 1) - p + j - 1], sep="")
-            print("Новые веса: ", w)
-    plt.plot(find_X(a, b, N)[1], find_Yist(a, b, N)[1], '-o', c='deepskyblue', label='x(t)')
-    plt.plot(find_X(a, b, N)[1], y, '-o', c='r', label='Slide')
-    plt.legend()
-    plt.show()
-    return y
+    def get_data(self):
+        print("var = ", self.var, sep="")
+        print("a = ", self.a, sep="")
+        print("b = ", self.b, sep="")
+        print("n = ", self.n, sep="")
+        print("N = ", self.N, sep="")
+        print("p = ", self.p, sep="")
+        print("M = ", self.M, sep="")
 
 
-find_Yslide(a_ref, b_ref, n_ref, N_ref, p_ref, M_ref)
+    def solve(self, t):
+        if (self.var == 9):
+            return math.exp(t - 2) - math.sin(t)
+        elif (self.var == 2):
+            return t**4 - 2*t**3 + t
+
+    def find_X(self):
+        x_N = np.arange(self.a, self.b, (self.b - self.a) / self.N)
+        x_2N = np.arange(self.a, 2 * self.b - self.a, (self.b - self.a) / self.N)
+        return x_N, x_2N
+
+    def find_Yist(self):
+        yN = np.array([], float)
+        y2N = np.array([], float)
+        tempN = self.find_X()[0]
+        temp2N = self.find_X()[1]
+        for i in range(len(tempN)):
+            yN = np.append(yN, self.solve(tempN[i]))
+        for i in range(len(temp2N)):
+            y2N = np.append(y2N, self.solve(temp2N[i]))
+        return yN, y2N
+
+
+    def find_Yslide(self, arr_x, arr_y):
+
+        return w, errors, k
+
+    def paint(self):
+        x = self.find_X()[1]
+        y = self.find_Yist()[1]
+        y_slide = self.find_Yslide(self.find_X()[1], self.find_Yist()[1])
+        plt.title("График функции")
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.grid()
+        plt.plot(x, y, '-o', c='deepskyblue', label='x(t)')
+        plt.plot(x, y_slide, '-o', c='r', label='Slide')
+        plt.legend()
+        plt.show()
+
+
+
+# ----------------------------------------
+# Запуск программы
+# ----------------------------------------
+Work = Lab(9, -1, 4, 0.01, 20, 4, 2)
+# Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
+Work.paint()
+# print(Work.find_Yslide(-1, 2, 20))
+
+# ----------------------------------------
