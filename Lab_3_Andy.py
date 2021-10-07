@@ -52,6 +52,7 @@ class Lab:
             y2N = np.append(y2N, self.solve(temp2N[i]))
         return yN, y2N
 
+
     def find_Yslide(self):
         w = np.array([], float)
         for i in range(self.p + 1):
