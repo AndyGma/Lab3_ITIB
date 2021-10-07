@@ -24,8 +24,10 @@ class Lab:
         print("var = ", self.var, sep="")
         print("a = ", self.a, sep="")
         print("b = ", self.b, sep="")
+        print("n = ", self.n, sep="")
         print("N = ", self.N, sep="")
         print("p = ", self.p, sep="")
+        print("M = ", self.M, sep="")
 
 
     def solve(self, t):
@@ -35,8 +37,8 @@ class Lab:
             return t**4 - 2*t**3 + t
 
     def find_X(self):
-        x_N = np.linspace(self.a, self.b, self.N)
-        x_2N = np.linspace(self.a, 2 * self.b - self.a, 2*self.N)
+        x_N = np.arange(self.a, self.b, (self.b - self.a) / self.N)
+        x_2N = np.arange(self.a, 2 * self.b - self.a, (self.b - self.a) / self.N)
         return x_N, x_2N
 
     def find_Yist(self):
@@ -55,19 +57,18 @@ class Lab:
         for i in range(self.p + 1):
             w = np.append(w, 0)
 
-        x = self.find_X()[0]
-        y = self.find_Yist()[0]
-
-        for i in range(self.N):
-            y_ist2N = self.find_Yist()[1]
-            y = np.append(y, 0)
-            print("y", i, " = ", y, sep="")
-            print("Обновляю y", self.N + 1 + i - 1)
-            for j in range(1, self.p + 1):
-                y[self.N + 1 + i - 1] += w[j] * y[(self.N + 1 + i - 1) - self.p + j - 1]
-            delta = y_ist2N[self.N + 1 + i - 1] - y[self.N + 1 + i - 1]
-            for j in range(1, self.p + 1):
-                w[j] = w[j] + self.n * delta * y[(self.N + 1 + i - 1) - self.p + j]
+        y_ist2N = self.find_Yist()[1]
+        for g in range(self.M):  # проход по эпохам обучения
+            y = self.find_Yist()[0]
+            for i in range(self.N):  # проход по каждому шагу функции
+                y = np.append(y, 0)
+                # print("y", i, " = ", y, sep="")
+                # print("Обновляю y", self.N + 1 + i - 1)
+                for j in range(1, self.p + 1):  # формирую 'y' (3.1)
+                    y[self.N + 1 + i - 1] += w[j] * y[(self.N + 1 + i - 1) - self.p + j - 1]
+                delta = y_ist2N[self.N + 1 + i - 1] - y[self.N + 1 + i - 1]
+                for j in range(1, self.p + 1):  # обновляю веса
+                    w[j] += self.n * delta * y[(self.N + 1 + i - 1) - self.p + j - 1]
         return y
 
     def paint(self):
@@ -89,7 +90,7 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 2, 0.1, 20, 4, 100)
+Work = Lab(9, -1, 2, 0.01, 20, 4, 100)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))
