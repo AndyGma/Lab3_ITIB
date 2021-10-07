@@ -54,7 +54,6 @@ class Lab:
 
 
     def find_Yslide(self):
-        x_2d = self.find_X()[1]
         y_2d = self.find_Yist()[1]
         y_1d = self.find_Yist()[1]
 
@@ -63,7 +62,7 @@ class Lab:
         for _ in range(self.M):  # по эпохам
             y_1d[self.p:] = 0
             err = 0
-            for i in range(self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
+            for i in range(0, self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
                 for k in range(1, self.p + 1):
                     y_1d[self.p + i] += w[k] * y_1d[i + k - 1]
                 y_1d[self.p + i] += w[0]
@@ -75,14 +74,21 @@ class Lab:
                 w[0] += update
                 err += delta ** 2
             errors.append(err)
-        return y_1d, errors
+        return y_1d, w, errors
 
+    def work(self, y_1d, w):
+        for i in range(self.N, 2*self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
+            for k in range(1, self.p + 1):
+                y_1d[self.p + i] += w[k] * y_1d[i + k - 1]
+            y_1d[self.p + i] += w[0]
 
+        return y_1d
 
     def paint(self):
         x = self.find_X()[1]
         y = self.find_Yist()[1]
-        y_slide = self.find_Yslide()
+        self.find_Yslide()
+        y_slide = self.work(self.find_Yslide()[0], self.find_Yslide()[1])
         plt.title("График функции")
         plt.xlabel("X")
         plt.ylabel("Y")
@@ -97,7 +103,7 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 4, 0.01, 20, 6, 2)
+Work = Lab(9, -1, 2, 0.01, 20, 6, 1000)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))
