@@ -54,7 +54,24 @@ class Lab:
 
 
     def find_Yslide(self, arr_x, arr_y):
+        n = self.n
+        w = np.zeros(self.p + 1)
 
+        errors = []
+        for _ in range(self.M):  # каждая эпоха
+            err = 0
+            for xi, yi in zip(arr_x, arr_y):
+                for k in range(1, self.p + 1):  # формирую 'y' (3.1)
+                    temp = 0
+                    temp += w[k] * arr_y[self.N - self.p + k - 1]
+                arr_y = np.append(arr_y, temp)
+                delta = yi - temp
+                update = self.n * delta
+                for k in range(1, self.p + 1):
+                    w[k] += update * arr_y[self.N - self.p + k - 1]
+                    w[0] += update
+                err += delta ** 2
+            errors.append(err)
         return w, errors, k
 
     def paint(self):

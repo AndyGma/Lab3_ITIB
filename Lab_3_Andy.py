@@ -54,25 +54,30 @@ class Lab:
 
 
     def find_Yslide(self):
+        x_2d = self.find_X()[1]
+        y_2d = self.find_Yist()[1]
+        y_1d = self.find_Yist()[1]
+
         w = np.zeros(self.p + 1)
-        y_ist2N = self.find_Yist()[1]  # истинные значения функции (полной)
-        for g in range(self.M):  # проход по эпохам обучения
+        errors = []
+        for _ in range(self.M):  # по эпохам
+            y_1d[self.p:] = 0
+            err = 0
+            for i in range(self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
+                for k in range(1, self.p + 1):
+                    y_1d[self.p + i] += w[k] * y_1d[i + k - 1]
+                y_1d[self.p + i] += w[0]
 
-            y = self.find_Yist()[0]  # истинные значения функции (короткой) len = 20
-
-            for i in range(self.N):  # проход по каждому шагу функции
-                for k in range(1, self.p + 1):  # формирую 'y' (3.1)
-                    temp = 0
-                    temp += w[k] * y[self.N - self.p + k - 1]  # +i в y[]
-                y = np.append(y, temp)
-
-                delta = y_ist2N[self.N + i] - y[self.N + i]
+                delta = y_2d[self.p + i] - y_1d[self.p + i]
                 update = self.n * delta
                 for k in range(1, self.p + 1):
-                    w[k] += update * y[self.N - self.p + k - 1]
-                    w[0] += update
-            print(w)
-        return y
+                    w[k] += update * y_1d[i + k - 1]
+                w[0] += update
+                err += delta ** 2
+            errors.append(err)
+        return y_1d, errors
+
+
 
     def paint(self):
         x = self.find_X()[1]
@@ -92,7 +97,7 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 4, 0.01, 20, 4, 2)
+Work = Lab(9, -1, 4, 0.01, 20, 6, 2)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))
