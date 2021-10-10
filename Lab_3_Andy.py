@@ -36,65 +36,49 @@ class Lab:
         elif (self.var == 2):
             return t**4 - 2*t**3 + t
 
-    def find_X(self):
-        x_N = np.arange(self.a, self.b, (self.b - self.a) / self.N)
-        x_2N = np.arange(self.a, 2 * self.b - self.a, (self.b - self.a) / self.N)
-        return x_N, x_2N
+    def find_X(self, a, b):
+        x = np.arange(a, b, (self.b - self.a) / self.N)
+        return x
 
-    def find_Yist(self):
-        yN = np.array([], float)
-        y2N = np.array([], float)
-        tempN = self.find_X()[0]
-        temp2N = self.find_X()[1]
-        for i in range(len(tempN)):
-            yN = np.append(yN, self.solve(tempN[i]))
-        for i in range(len(temp2N)):
-            y2N = np.append(y2N, self.solve(temp2N[i]))
-        return yN, y2N
+    def find_Y(self, a, b):
+        y = np.array([], float)
+        for i in range(len(self.find_X(a, b))):
+            y = np.append(y, self.solve(self.find_X(a, b)[i]))
+        return y
 
-
-    def find_Yslide(self):
-        y_2d = self.find_Yist()[1]
-        y_1d = self.find_Yist()[1]
-
+    def fit_NC(self):
         w = np.zeros(self.p + 1)
         errors = []
-        for _ in range(self.M):  # по эпохам
-            y_1d[self.p:] = 0
-            err = 0
-            for i in range(0, self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
-                for k in range(1, self.p + 1):
-                    y_1d[self.p + i] += w[k] * y_1d[i + k - 1]
-                y_1d[self.p + i] += w[0]
 
-                delta = y_2d[self.p + i] - y_1d[self.p + i]
+        for _ in range(self.M):  # по эпохам
+            err = 0
+            for i, target in enumerate(self.find_Y(self.a, self.b)[self.p:]):
+                print(len(target))
+                print(len((np.dot(self.find_Y(self.a, self.b)[i:self.p+1], w[1:]) + w[0])))
+                delta = target - (np.dot(self.find_Y(self.a, self.b)[i:self.p+1], w[1:]) + w[0])
                 update = self.n * delta
-                for k in range(1, self.p + 1):
-                    w[k] += update * y_1d[i + k - 1]
+
+                w[1:] += update * self.find_Y(self.a, self.b)[i:self.p+1]
                 w[0] += update
                 err += delta ** 2
             errors.append(err)
-        return y_1d, w, errors
+        return w, errors
 
-    def work(self, y_1d, w):
-        for i in range(self.N, 2*self.N - self.p):  # от 0 до 13 (14 шагов) для y6 ... y19
-            for k in range(1, self.p + 1):
-                y_1d[self.p + i] += w[k] * y_1d[i + k - 1]
-            y_1d[self.p + i] += w[0]
-
-        return y_1d
+    # def work(self, y, w):
+    #             return y
 
     def paint(self):
-        x = self.find_X()[1]
-        y = self.find_Yist()[1]
-        self.find_Yslide()
-        y_slide = self.work(self.find_Yslide()[0], self.find_Yslide()[1])
+        x = self.find_X(self.a, 2 * self.b - self.a)
+        y = self.find_Y(self.a, 2 * self.b - self.a)
+        w, err = self.fit_NC()
+        # print(w)
+        # y_nc = self.work(y_new, w)
         plt.title("График функции")
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.grid()
         plt.plot(x, y, '-o', c='deepskyblue', label='x(t)')
-        plt.plot(x, y_slide, '-o', c='r', label='Slide')
+        # plt.plot(self.find_X(self.a, 2 * self.b - self.a), y_nc, '-o', c='r', label='Slide')
         plt.legend()
         plt.show()
 
@@ -103,7 +87,7 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 2, 0.01, 20, 6, 1000)
+Work = Lab(9, -1, 2, 0.01, 20, 4, 1)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))
