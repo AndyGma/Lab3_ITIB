@@ -53,32 +53,35 @@ class Lab:
         for _ in range(self.M):  # по эпохам
             err = 0
             for i, target in enumerate(self.find_Y(self.a, self.b)[self.p:]):
-                print(len(target))
-                print(len((np.dot(self.find_Y(self.a, self.b)[i:self.p+1], w[1:]) + w[0])))
-                delta = target - (np.dot(self.find_Y(self.a, self.b)[i:self.p+1], w[1:]) + w[0])
+                delta = target - (np.dot(self.find_Y(self.a, self.b)[i:self.p+i], w[1:]) + w[0])
                 update = self.n * delta
 
-                w[1:] += update * self.find_Y(self.a, self.b)[i:self.p+1]
+                w[1:] += update * self.find_Y(self.a, self.b)[i:self.p+i]
                 w[0] += update
                 err += delta ** 2
             errors.append(err)
         return w, errors
 
-    # def work(self, y, w):
-    #             return y
+    def net_input(self, X, w):
+        return np.dot(X, w[1:]) + w[0]
+
+    def work(self, w):
+        y = self.find_Y(self.a, self.b)[:self.p+1]
+        y = np.append(y, self.net_input(self.find_X(self.a, self.b), self.fit_NC()[0]))
+        return y
 
     def paint(self):
         x = self.find_X(self.a, 2 * self.b - self.a)
         y = self.find_Y(self.a, 2 * self.b - self.a)
         w, err = self.fit_NC()
-        # print(w)
-        # y_nc = self.work(y_new, w)
+        y_NC = self.work(w)
+
         plt.title("График функции")
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.grid()
         plt.plot(x, y, '-o', c='deepskyblue', label='x(t)')
-        # plt.plot(self.find_X(self.a, 2 * self.b - self.a), y_nc, '-o', c='r', label='Slide')
+        # plt.plot(self.find_X(self.a, 1.0), y_NC, '-o', c='r', label='Slide')
         plt.legend()
         plt.show()
 
@@ -87,7 +90,7 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 2, 0.01, 20, 4, 1)
+Work = Lab(9, -1, 2, 0.01, 20, 4, 100)
 # Work = Lab(2, -0.5, 0.5, 0.1, 20, 4, 100)
 Work.paint()
 # print(Work.find_Yslide(-1, 2, 20))
