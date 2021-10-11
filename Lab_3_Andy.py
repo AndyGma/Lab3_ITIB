@@ -19,6 +19,7 @@ class Lab:
         self.N = N
         self.p = p
         self.M = M
+        self.X = self.find_X(self.a, self.b)
         self.Y = self.find_Y(self.a, self.b)
 
     def get_data(self):
@@ -50,59 +51,38 @@ class Lab:
         return y
 
     def fit_NC(self):
-        w = np.zeros(self.p + 1)
-        errors = []
+        self.w = np.zeros(self.p + 1)
+        self.errors = []
 
         for _ in range(self.M):  # по эпохам
             err = 0
 
-            for i in range(self.p, len(y_1ab)):  # обучение до 19 элемента
-                target = y_1ab[i]
-                get_y = np.dot(y_1ab[(i - self.p):i], w[1:]) + w[0]
-
-                delta = target - get_y
+            for i, target in enumerate(self.Y[self.p:]):
+                delta = target - self.net_input(self.Y[i:self.p+i])
                 update = self.n * delta
-
-                w[1:] += update * y_1ab[(i - self.p):i]
-                w[0] += update
+                self.w[1:] += update * self.Y[i:self.p+i]
+                self.w[0] += update
                 err += delta ** 2
-            errors.append(err)
-        # print("target = ", y_1ab[-1])
-        # print("get = ", y_1ab[-1])
-        return w, errors
+            self.errors.append(err)
+        return self
 
-    def work(self, w):
-        x = self.find_X(self.a, self.b)
-        y = self.find_Y(self.a, self.b)
-        print(y)
-        print("длина = ", len(y))
-        plt.plot(range(len(y)), y, '-o', c='r', label='Slide')
-        plt.grid()
-        plt.show()
+    def work(self):
         for i in range(self.N):
-            y = np.append(y, self.net_input(y[len(y) - self.p:], w))
-            x = np.append(x, x[-1] + x[-1] - x[-2])
-        return x, y
+            self.Y = np.append(self.Y, self.net_input(self.Y[len(self.Y) - self.p:]))
+            self.X = np.append(self.X, self.X[-1] + self.X[-1] - self.X[-2])
+        plt.plot(self.X, self.Y, '--o', c='r', label='Slide')
+        return self
 
-    def net_input(self, Y, w):
-        return np.dot(Y, w[1:]) + w[0]
 
-    # def work(self, w):
-    #     y = self.find_Y(self.a, self.b)[:self.p]
-    #     for i in range(self.p, 2*self.N):
-    #         temp = 0
-    #         for k in range(1, self.p+1):
-    #             temp += w[k] * y[i - self.p + k - 1]
-    #         temp += w[0]
-    #         y = np.append(y, temp)
-    #
-    #     return y
+    def net_input(self, Y):
+        return np.dot(Y, self.w[1:]) + self.w[0]
+
 
     def paint(self):
         x = self.find_X(self.a, 2 * self.b - self.a)
         y = self.find_Y(self.a, 2 * self.b - self.a)
-        w, err = self.fit_NC()
-        x_NC, y_NC = self.work(w)
+        self.fit_NC()
+        self.work()
 
 
         plt.title("График функции")
@@ -110,11 +90,10 @@ class Lab:
         plt.ylabel("Y")
         plt.grid()
         plt.plot(x, y, '-o', c='deepskyblue', label='x(t)')
-        plt.plot(x_NC, y_NC, '-o', c='r', label='Slide')
         plt.legend()
         plt.show()
 
-        plt.plot(range(len(err)), err, '--og', label='Ошибка')  # МНК
+        plt.plot(range(len(self.errors)), self.errors, '--og', label='Ошибка')  # МНК
         plt.grid()
         plt.show()
 
@@ -122,8 +101,8 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-Work = Lab(9, -1, 3, 0.01, 20, 6, 1000)
-# Work = Lab(2, -0.5, 0.5, 0.01, 20, 4, 100)
+# Work = Lab(1, -1, 3, 0.01, 20, 6, 1000)
+Work = Lab(2, -0.5, 0.5, 0.01, 20, 6, 1000)
 Work.paint()
 
 # ----------------------------------------
