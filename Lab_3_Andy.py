@@ -21,24 +21,10 @@ class Lab:
         self.M = M
         self.X = self.find_X(self.a, self.b)
         self.Y = self.find_Y(self.a, self.b)
-
-    def get_data(self):
-        print("var = ", self.var, sep="")
-        print("a = ", self.a, sep="")
-        print("b = ", self.b, sep="")
-        print("n = ", self.n, sep="")
-        print("N = ", self.N, sep="")
-        print("p = ", self.p, sep="")
-        print("M = ", self.M, sep="")
-
+        self.w = np.zeros(self.p + 1)
 
     def solve(self, t):
-        if (self.var == 9):
-            return math.exp(t - 2) - math.sin(t)
-        elif (self.var == 2):
-            return t**4 - 2*t**3 + t
-        elif (self.var == 1):
-            return math.sin(t+2)
+        return np.exp(t - 2) - np.sin(t)
 
     def find_X(self, a, b):
         x = np.arange(a, b, (self.b - self.a) / self.N)
@@ -51,45 +37,44 @@ class Lab:
         return y
 
     def fit_NC(self):
-        self.w = np.zeros(self.p + 1)
         self.errors = []
+        y = self.find_Y(self.a, self.b)
 
         for _ in range(self.M):  # по эпохам
             err = 0
 
-            for i, target in enumerate(self.Y[self.p:]):
-                delta = target - self.net_input(self.Y[i:self.p+i])
+            temp = np.array([], float)
+            update = np.array([], float)
+            for i in range(self.p, len(y)):  # строю матрицу двумерную
+                temp = np.append(temp, np.dot(self.w[1:], y[(i - self.p):i]) + self.w[0])
+                delta = y[i] - temp[-1]
                 update = self.n * delta
-                self.w[1:] += update * self.Y[i:self.p+i]
+                self.w[1:] += update * y[(i - self.p):i]
                 self.w[0] += update
                 err += delta ** 2
             self.errors.append(err)
         return self
 
+    def net_input(self, X):
+        return np.dot(X, self.w[1:]) + self.w[0]
+
     def work(self):
-        for i in range(self.N):
-            self.Y = np.append(self.Y, self.net_input(self.Y[len(self.Y) - self.p:]))
-            self.X = np.append(self.X, self.X[-1] + self.X[-1] - self.X[-2])
-        plt.plot(self.X, self.Y, '--o', c='r', label='Slide')
-        return self
-
-
-    def net_input(self, Y):
-        return np.dot(Y, self.w[1:]) + self.w[0]
+        x = self.find_X(self.a, 2 * self.b - self.a)
 
 
     def paint(self):
-        x = self.find_X(self.a, 2 * self.b - self.a)
-        y = self.find_Y(self.a, 2 * self.b - self.a)
         self.fit_NC()
-        self.work()
-
+        print(self.w)
+        # self.work()
+        for i in range(20):
+            self.Y = np.append(self.Y, self.net_input(self.Y[len(self.Y) - self.p:]))
+            self.X = np.append(self.X, self.X[-1] + self.X[-1] - self.X[-2])
 
         plt.title("График функции")
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.grid()
-        plt.plot(x, y, '-o', c='deepskyblue', label='x(t)')
+        plt.plot(self.X, self.Y, '-o', c='deepskyblue', label='x(t)')
         plt.legend()
         plt.show()
 
@@ -101,8 +86,8 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-# Work = Lab(1, -1, 3, 0.01, 20, 6, 1000)
-Work = Lab(2, -0.5, 0.5, 0.01, 20, 6, 1000)
+# Work = Lab(-1, 3, 0.01, 20, 6, 1000)  # Андрей
+Work = Lab(-0.5, 0.5, 0.01, 20, 4, 1000)  # Аня
 Work.paint()
 
 # ----------------------------------------
