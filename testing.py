@@ -1,4 +1,10 @@
-grocery = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+import numpy as np
 
-for i, item in enumerate(grocery[4:]):
-    print(i, item)
+N = 20
+p = 4
+
+a = np.arange(0, N)
+mass = np.array([[]], float)
+
+for i in range(0, p):
+    mass[i] = np.append(mass[i], 5)
