@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import math
 
 class Lab:
-    var = None  # Вариант
     a = None  # граница a
     b = None  # граница b
     n = None  # коэфф. обучения
@@ -19,12 +18,19 @@ class Lab:
         self.N = N
         self.p = p
         self.M = M
+
         self.X = self.find_X(self.a, self.b)
         self.Y = self.find_Y(self.a, self.b)
         self.w = np.zeros(self.p + 1)
+        self.errors = []
 
     def solve(self, t):
-        return np.exp(t - 2) - np.sin(t)
+        if self.var == 9:
+            return np.exp(t - 2) - np.sin(t)
+        elif self.var == 2:
+            return (t ** 4) - (2 * (t ** 3)) + t
+        else:
+            return np.sin(t -2)
 
     def find_X(self, a, b):
         x = np.arange(a, b, (self.b - self.a) / self.N)
@@ -37,44 +43,41 @@ class Lab:
         return y
 
     def fit_NC(self):
-        self.errors = []
-        y = self.find_Y(self.a, self.b)
-
-        for _ in range(self.M):  # по эпохам
-            err = 0
-
-            temp = np.array([], float)
-            update = np.array([], float)
-            for i in range(self.p, len(y)):  # строю матрицу двумерную
-                temp = np.append(temp, np.dot(self.w[1:], y[(i - self.p):i]) + self.w[0])
-                delta = y[i] - temp[-1]
+        for _ in range(self.M):
+            error = 0
+            y_ist = self.find_Y(self.a, self.b)
+            for i in range(self.p, self.N):  # 4-19 обучение за окном
+                net = self.net_input(y_ist[(i - self.p):i])
+                delta = y_ist[i] - net
                 update = self.n * delta
-                self.w[1:] += update * y[(i - self.p):i]
+                for k in range(1, self.p+1):
+                    self.w[k] += update * y_ist[i - self.p + k - 1]
                 self.w[0] += update
-                err += delta ** 2
-            self.errors.append(err)
+                error += delta ** 2
+            self.errors.append(error)
         return self
 
     def net_input(self, X):
         return np.dot(X, self.w[1:]) + self.w[0]
 
     def work(self):
-        x = self.find_X(self.a, 2 * self.b - self.a)
+        for i in range(self.N, 2 * self.N):
+            self.Y = np.append(self.Y, self.net_input(self.Y[(len(self.Y) - self.p):]))
+            self.X = np.append(self.X, self.X[-1] + self.X[-1] - self.X[-2])
 
 
     def paint(self):
         self.fit_NC()
         print(self.w)
         # self.work()
-        for i in range(20):
-            self.Y = np.append(self.Y, self.net_input(self.Y[len(self.Y) - self.p:]))
-            self.X = np.append(self.X, self.X[-1] + self.X[-1] - self.X[-2])
+        self.work()
 
         plt.title("График функции")
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.grid()
-        plt.plot(self.X, self.Y, '-o', c='deepskyblue', label='x(t)')
+        plt.plot(self.find_X(self.a, 2*self.b - self.a), self.find_Y(self.a, 2*self.b - self.a), '-o', c='deepskyblue', label='Y_ist')
+        plt.plot(self.X, self.Y, '--o', c='red', label='Y_predict')
         plt.legend()
         plt.show()
 
@@ -86,8 +89,10 @@ class Lab:
 # ----------------------------------------
 # Запуск программы
 # ----------------------------------------
-# Work = Lab(-1, 3, 0.01, 20, 6, 1000)  # Андрей
-Work = Lab(-0.5, 0.5, 0.01, 20, 4, 1000)  # Аня
+# Work = Lab(9, -1, 4, 0.1, 20, 6, 5000)  # Андрей
+# Work = Lab(2, -0.5, 0.5, 0.1, 20, 6, 5000)  # Аня
+Work = Lab(1, -1, 1, 0.1, 20, 6, 5000)  # Синус
+
 Work.paint()
 
 # ----------------------------------------
