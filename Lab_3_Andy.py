@@ -79,6 +79,7 @@ class Lab:
         plt.plot(self.find_X(self.a, 2*self.b - self.a), self.find_Y(self.a, 2*self.b - self.a), '-o', c='deepskyblue', label='Y_ist')
         plt.plot(self.X, self.Y, '--o', c='red', label='Y_predict')
         plt.legend()
+
         plt.show()
 
         plt.plot(range(len(self.errors)), self.errors, '--og', label='Ошибка')  # МНК
